@@ -19,4 +19,4 @@ spec:
       headers:
       - name: Upgrade
         value: websocket
-  url: oci://your-registry/voice-processor:1.0.0
+  url: oci://your-registry/audio-processor:1.0.0

@@ -29,6 +29,7 @@ type PluginConfig struct {
 }
 
 func parseConfig(json gjson.Result, config *PluginConfig, log wrapper.Log) error {
+  log.Debugf("parseConfig()")
 	config.ASRServiceURL = json.Get("asrServiceURL").String()
 	if config.ASRServiceURL == "" {
 		return fmt.Errorf("missing asrServiceURL in config")
@@ -45,6 +46,7 @@ func parseConfig(json gjson.Result, config *PluginConfig, log wrapper.Log) error
 	if config.LLMAPIKey == "" {
 		return fmt.Errorf("missing llmAPIKey in config")
 	}
+  log.Debugf("parse config:%+v", config)
 	return nil
 }
 
