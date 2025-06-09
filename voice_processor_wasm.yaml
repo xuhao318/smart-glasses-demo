@@ -1,0 +1,22 @@
+apiVersion: extensions.higress.io/v1alpha1
+kind: WasmPlugin
+metadata:
+  name: voice-processing-plugin
+  namespace: higress-system
+spec:
+  defaultConfig:
+    aliyun_asr_ws_url: "wss://paraformer-ws.cn-shanghai.aliyuncs.com/ws/v1"
+    aliyun_asr_token: "your-aliyun-asr-token"
+    qwen_llm_url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
+    qwen_api_key: "your-qwen-api-key"
+  matchRules:
+  - ingressRef:
+      name: higress-gateway
+      kind: Gateway
+      group: gateway.networking.k8s.io
+    rules:
+    - path: /voice-process*
+      headers:
+      - name: Upgrade
+        value: websocket
+  url: oci://your-registry/voice-processor:1.0.0

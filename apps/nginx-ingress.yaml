@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx
+  namespace: nginx  # 建议放在nginx所在命名空间
+  annotations:
+    higress.io/destination: nginx.nginx.svc.cluster.local:80
+spec:
+  ingressClassName: higress
+  rules:
+  - http:
+      paths:
+      - path: /nginx
+        pathType: Prefix  # 改为Prefix确保匹配/nginx及子路径
+        backend:
+          service:
+            name: nginx  # Service名称
+            port:
+              number: 80  # Service端口

@@ -1,0 +1,47 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: higress-gateway
+  namespace: higress-system
+spec:
+  gatewayClassName: higress
+  listeners:
+  - name: https
+    port: 443
+    protocol: HTTPS
+    hostname: "voice-api.example.com"
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: example-com-cert
+    allowedRoutes:
+      namespaces:
+        from: All
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: asr-llm-processor
+  namespace: higress-system
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: networking.higress.io/v1
+kind: McpBridge
+metadata:
+  name: external-services
+  namespace: higress-system
+spec:
+  hosts:
+  - name: paraformer-ws.cn-shanghai.aliyuncs.com
+    port:
+      number: 443
+    protocol: TLS
+  - name: dashscope.aliyuncs.com
+    port:
+      number: 443
+    protocol: HTTPS
