@@ -14,3 +14,6 @@ the jwt application
 #higress
 higress deployment
 hgctl install --set profile=local-k8s --set console.o11yEnabled=true
+
+ref
+https://github.com/alibaba/higress/tree/main/plugins/wasm-go

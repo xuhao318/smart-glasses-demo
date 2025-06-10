@@ -23,30 +23,30 @@ func main() {
 
 type PluginConfig struct {
 	ASRServiceURL string
+	ASRToken      string
 	LLMServiceURL string
-	ASRAPIKey     string
 	LLMAPIKey     string
 }
 
 func parseConfig(json gjson.Result, config *PluginConfig, log wrapper.Log) error {
-  log.Debugf("parseConfig()")
-	config.ASRServiceURL = json.Get("asrServiceURL").String()
+	log.Debugf("parseConfig()")
+	config.ASRServiceURL = json.Get("aliyun_asr_ws_url").String()
 	if config.ASRServiceURL == "" {
-		return fmt.Errorf("missing asrServiceURL in config")
+		return fmt.Errorf("missing aliyun_asr_ws_url in config")
 	}
-	config.LLMServiceURL = json.Get("llmServiceURL").String()
+	config.ASRToken = json.Get("aliyun_asr_token").String()
+	if config.ASRToken == "" {
+		return fmt.Errorf("missing aliyun_asr_token in config")
+	}
+	config.LLMServiceURL = json.Get("qwen_llm_url").String()
 	if config.LLMServiceURL == "" {
-		return fmt.Errorf("missing llmServiceURL in config")
+		return fmt.Errorf("missing qwen_llm_url in config")
 	}
-	config.ASRAPIKey = json.Get("asrAPIKey").String()
-	if config.ASRAPIKey == "" {
-		return fmt.Errorf("missing asrAPIKey in config")
-	}
-	config.LLMAPIKey = json.Get("llmAPIKey").String()
+	config.LLMAPIKey = json.Get("qwen_api_key").String()
 	if config.LLMAPIKey == "" {
-		return fmt.Errorf("missing llmAPIKey in config")
+		return fmt.Errorf("missing qwen_api_key in config")
 	}
-  log.Debugf("parse config:%+v", config)
+	log.Debugf("parse config: %+v", config)
 	return nil
 }
 
