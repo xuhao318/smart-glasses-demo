@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
@@ -34,7 +33,7 @@ type Response struct {
 func callASRService(audio []byte) (string, error) {
 	// 替换为你的 ASR WebSocket 地址
 	asrURL := url.URL{Scheme: "wss", Host: "dashscope.aliyuncs.com", Path: "/api-ws/v1/inference"}
-	
+
 	conn, _, err := websocket.DefaultDialer.Dial(asrURL.String(), nil)
 	if err != nil {
 		return "", fmt.Errorf("ASR 连接失败: %v", err)
@@ -59,7 +58,7 @@ func callASRService(audio []byte) (string, error) {
 func callLLMService(text string) (string, error) {
 	// 替换为你的 LLM API 地址
 	llmURL := "https://dashscope.aliyuncs.com/api/v1/services/llm"
-	
+
 	reqBody, _ := json.Marshal(LLMRequest{Text: text})
 	resp, err := http.Post(llmURL, "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
