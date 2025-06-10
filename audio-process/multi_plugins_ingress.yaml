@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: voice-intent-ingress
+  annotations:
+    higress.io/wasm-plugins: |
+      [
+        {
+          "name": "asr-request-modifier",
+          "config": { "asr_endpoint": "wss://dashscope.aliyuncs.com" }
+        },
+        {
+          "name": "llm-caller",
+          "config": { "llm_endpoint": "https://api.openai.com/v1/chat/completions" }
+        },
+        {
+          "name": "response-filter",
+          "config": { "template": "{ \"intent\": \"{{ extract(llm_response) }}\" }" }
+        }
+      ]
+spec:
+  ingressClassName: higress
+  rules:
+    - host: voice-api.example.com
+      http:
+        paths:
+          - path: /process
+            pathType: Prefix
+            backend:
+              service:
+                name: asr-service  # 直接指向 ASR 服务
+                port: 
+                  number: 443
