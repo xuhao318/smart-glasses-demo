@@ -1,7 +1,41 @@
+
 apiVersion: v1
 kind: Namespace
 metadata:
   name: keycloak
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: keycloak
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  - name: https
+    port: 8443
+    targetPort: 8443
+  selector:
+    app: keycloak
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: keycloak
+  # Used to
+  name: keycloak-discovery
+  namespace: keycloak
+spec:
+  selector:
+    app: keycloak
+  # Allow not-yet-ready Pods to be visible to ensure the forming of a cluster if Pods come up concurrently
+  publishNotReadyAddresses: true
+  clusterIP: None
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -23,7 +57,7 @@ spec:
     spec:
       containers:
       - name: keycloak
-        image: docker.1ms.run/keycloak/keycloak:26.2.5
+        image: keycloak/keycloak:26.2.5
         args: ["start-dev"]
         env:
         - name: KEYCLOAK_ADMIN
@@ -33,11 +67,13 @@ spec:
         - name: KC_DB
           value: postgres
         - name: KC_DB_URL
-          value: jdbc:postgresql://postgres.postgres.svc.cluster.local:5432/postgres
+          value: jdbc:postgresql://postgres.postgres.svc.cluster.local:5432/postgres?currentSchema=keycloak
         - name: KC_DB_USERNAME
           value: postgres
         - name: KC_DB_PASSWORD
           value: "postgres"
+        - name: KC_DB_SCHEMA
+          value: "keycloak"
         - name: KC_HOSTNAME_STRICT
           value: "false"
         - name: KC_HTTP_ENABLED
@@ -77,20 +113,3 @@ spec:
       resources:
         requests:
           storage: 1Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: keycloak
-  namespace: keycloak
-spec:
-  ports:
-  - name: http
-    port: 8080
-    targetPort: 8080
-  - name: https
-    port: 8443
-    targetPort: 8443
-  selector:
-    app: keycloak
-  type: ClusterIP
