@@ -6,79 +6,10 @@ metadata:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: postgres
-  namespace: keycloak
-spec:
-  serviceName: postgres
-  replicas: 1
-  selector:
-    matchLabels:
-      app: postgres
-  template:
-    metadata:
-      labels:
-        app: postgres
-    spec:
-      containers:
-      - name: postgres
-        image: docker.1ms.run/postgres:17
-        env:
-        - name: POSTGRES_DB
-          value: keycloak
-        - name: POSTGRES_USER
-          value: keycloak
-        - name: POSTGRES_PASSWORD
-          value: "YourSecureDbPassword123!" # 请替换为强密码
-        ports:
-        - containerPort: 5432
-          name: postgres
-        volumeMounts:
-        - name: postgres-data
-          mountPath: /var/lib/postgresql/pgdata
-        livenessProbe:
-          exec:
-            command:
-            - pg_isready
-            - -U
-            - keycloak
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          exec:
-            command:
-            - pg_isready
-            - -U
-            - keycloak
-          initialDelaySeconds: 5
-          periodSeconds: 5
-  volumeClaimTemplates:
-  - metadata:
-      name: postgres-data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "alicloud-disk-essd"
-      resources:
-        requests:
-          storage: 20Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres
-  namespace: keycloak
-spec:
-  ports:
-  - port: 5432
-    targetPort: 5432
-  selector:
-    app: postgres
-  clusterIP: None
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
   name: keycloak
   namespace: keycloak
+  labels:
+    app: keycloak
 spec:
   serviceName: keycloak
   replicas: 1
@@ -92,7 +23,7 @@ spec:
     spec:
       containers:
       - name: keycloak
-        image: docker.1ms.run/keycloak/keycloak:latest
+        image: docker.1ms.run/keycloak/keycloak:26.2.5
         args: ["start-dev"]
         env:
         - name: KEYCLOAK_ADMIN
@@ -102,11 +33,11 @@ spec:
         - name: KC_DB
           value: postgres
         - name: KC_DB_URL
-          value: jdbc:postgresql://postgres.keycloak.svc.cluster.local:5432/keycloak
+          value: jdbc:postgresql://postgres.postgres.svc.cluster.local:5432/postgres
         - name: KC_DB_USERNAME
-          value: keycloak
+          value: postgres
         - name: KC_DB_PASSWORD
-          value: "YourSecureDbPassword123!"
+          value: "postgres"
         - name: KC_HOSTNAME_STRICT
           value: "false"
         - name: KC_HTTP_ENABLED
@@ -115,6 +46,8 @@ spec:
           value: "false"
         - name: KC_PROXY_HEADERS
           value: "forwarded"
+        - name: KC_HTTP_RELATIVE_PATH
+          value: "/keycloak"
         ports:
         - name: http
           containerPort: 8080
@@ -122,13 +55,13 @@ spec:
           containerPort: 8443
         readinessProbe:
           httpGet:
-            path: /realms/master
+            path: /keycloak/realms/master
             port: 8080
           initialDelaySeconds: 60
           periodSeconds: 5
         livenessProbe:
           httpGet:
-            path: /realms/master
+            path: /keycloak/realms/master
             port: 8080
           initialDelaySeconds: 60
           periodSeconds: 10
@@ -140,10 +73,10 @@ spec:
       name: keycloak-data
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "alicloud-disk-essd"
+      #storageClassName: "alibabacloud-cnfs-nas"
       resources:
         requests:
-          storage: 20Gi
+          storage: 1Gi
 ---
 apiVersion: v1
 kind: Service
@@ -160,4 +93,4 @@ spec:
     targetPort: 8443
   selector:
     app: keycloak
-  type: LoadBalancer
+  type: ClusterIP
